@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal System</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-container {
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dashboard-hidden {
+            display: none;
+        }
+        
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .nav-item.active {
+            background-color: rgba(255,255,255,0.2);
+            border-left: 4px solid white;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .grade-a { background-color: #10b981; color: white; }
+        .grade-b { background-color: #3b82f6; color: white; }
+        .grade-c { background-color: #f59e0b; color: white; }
+        .grade-d { background-color: #ef4444; color: white; }
+        
+        .status-submitted { background-color: #10b981; color: white; }
+        .status-pending { background-color: #f59e0b; color: white; }
+        .status-overdue { background-color: #ef4444; color: white; }
+        
+        .demo-banner {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="min-h-full bg-gray-100"><!-- Demo Banner -->
+  <div class="demo-banner">
+   🎓 DEMO STUDENT PORTAL - Use any email/password to login (e.g., student@university.edu / password123)
+  </div><!-- Login Screen -->
+  <div id="login-screen" class="login-container gradient-bg">
+   <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+    <div class="text-center mb-8">
+     <div class="text-4xl mb-4">
+      🎓
+     </div>
+     <h1 id="portal-title" class="text-3xl font-bold text-gray-800 mb-2">Student Portal</h1>
+     <p id="university-name" class="text-gray-600">University of Excellence</p>
+    </div>
+    <form id="login-form" class="space-y-6">
+     <div><label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label> <input type="email" id="email" name="email" required class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your email">
+      <div id="email-error" class="text-red-500 text-sm mt-1 hidden">
+       Please enter a valid email address
+      </div>
+     </div>
+     <div><label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label> <input type="password" id="password" name="password" required minlength="6" class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your password">
+      <div id="password-error" class="text-red-500 text-sm mt-1 hidden">
+       Password must be at least 6 characters
+      </div>
+     </div>
+     <div class="flex items-center justify-between"><label class="flex items-center"> <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> <span class="ml-2 text-sm text-gray-600">Remember me</span> </label> <a href="#" class="text-sm text-blue-600 hover:text-blue-700">Forgot password?</a>
+     </div><button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2"> <span id="login-text">Sign In</span>
+      <div id="login-spinner" class="loading-spinner hidden"></div></button>
+    </form>
+    <div class="mt-6 text-center">
+     <p class="text-sm text-gray-600">Need help? Contact <span id="contact-email" class="text-blue-600">support@university.edu</span></p>
+    </div>
+   </div>
+  </div><!-- Dashboard Screen -->
+  <div id="dashboard-screen" class="dashboard-hidden min-h-full"><!-- Header -->
+   <header class="gradient-bg text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+     <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+       <div class="text-2xl">
+        🎓
+       </div>
+       <div>
+        <h1 id="dashboard-title" class="text-xl font-bold">Student Portal</h1>
+        <p id="dashboard-university" class="text-sm opacity-90">University of Excellence</p>
+       </div>
+      </div>
+      <div class="flex items-center space-x-4">
+       <div class="text-right">
+        <p id="student-name" class="font-semibold">Welcome, Student</p>
+        <p id="student-id" class="text-sm opacity-90">ID: STU2024001</p>
+       </div><button id="logout-btn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all"> Logout </button>
+      </div>
+     </div>
+    </div>
+   </header>
+   <div class="flex min-h-full"><!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-lg">
+     <nav class="p-4">
+      <ul class="space-y-2">
+       <li class="nav-item active px-4 py-3 rounded-lg" data-section="dashboard">
+        <div class="flex items-center space-x-3"><span>📊</span> <span class="font-medium">Dashboard</span>
+        </div></li>
+       <li class="nav-item px-4 py-3 rounded-lg" data-section="courses">
+        <div class="flex items-center space-x-3"><span>📚</span> <span class="font-medium">My Courses</span>
+        </div></li>
+       <li class="nav-item px-4 py-3 rounded-lg" data-section="assignments">
+        <div class="flex items-center space-x-3"><span>📝</span> <span class="font-medium">Assignments</span>
+        </div></li>
+       <li class="nav-item px-4 py-3 rounded-lg" data-section="grades">
+        <div class="flex items-center space-x-3"><span>🎯</span> <span class="font-medium">Grades</span>
+        </div></li>
+       <li class="nav-item px-4 py-3 rounded-lg" data-section="profile">
+        <div class="flex items-center space-x-3"><span>👤</span> <span class="font-medium">Profile</span>
+        </div></li>
+      </ul>
+     </nav>
+    </aside><!-- Main Content -->
+    <main class="flex-1 p-6"><!-- Dashboard Section -->
+     <section id="section-dashboard" class="section-content">
+      <div class="mb-6">
+       <h2 class="text-2xl font-bold text-gray-800 mb-2">Dashboard</h2>
+       <p id="welcome-message" class="text-gray-600">Welcome back! Here's your academic overview.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+       <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+        <div class="flex items-center justify-between">
+         <div>
+          <p class="text-sm font-medium text-gray-600">Total Courses</p>
+          <p id="total-courses" class="text-2xl font-bold text-gray-800">6</p>
+         </div>
+         <div class="text-3xl">
+          📚
+         </div>
+        </div>
+       </div>
+       <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+        <div class="flex items-center justify-between">
+         <div>
+          <p class="text-sm font-medium text-gray-600">Pending Assignments</p>
+          <p id="pending-assignments" class="text-2xl font-bold text-orange-600">3</p>
+         </div>
+         <div class="text-3xl">
+          📝
+         </div>
+        </div>
+       </div>
+       <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+        <div class="flex items-center justify-between">
+         <div>
+          <p class="text-sm font-medium text-gray-600">Average Grade</p>
+          <p id="average-grade" class="text-2xl font-bold text-green-600">A-</p>
+         </div>
+         <div class="text-3xl">
+          🎯
+         </div>
+        </div>
+       </div>
+       <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+        <div class="flex items-center justify-between">
+         <div>
+          <p class="text-sm font-medium text-gray-600">Credits Earned</p>
+          <p id="credits-earned" class="text-2xl font-bold text-blue-600">45</p>
+         </div>
+         <div class="text-3xl">
+          🏆
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-6">
+       <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Recent Assignments</h3>
+        <div id="recent-assignments" class="space-y-3">
+         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div>
+           <p class="font-medium text-gray-800">Database Design Project</p>
+           <p class="text-sm text-gray-600">CS 301 - Due Tomorrow</p>
+          </div><span class="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">Pending</span>
+         </div>
+        </div>
+       </div>
+       <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Upcoming Deadlines</h3>
+        <div id="upcoming-deadlines" class="space-y-3">
+         <div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
+          <div class="text-red-500">
+           ⚠️
+          </div>
+          <div>
+           <p class="font-medium text-gray-800">Math Quiz</p>
+           <p class="text-sm text-red-600">Due in 2 days</p>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </section><!-- Courses Section -->
+     <section id="section-courses" class="section-content hidden">
+      <div class="mb-6">
+       <h2 class="text-2xl font-bold text-gray-800 mb-2">My Courses</h2>
+       <p class="text-gray-600">Manage your enrolled courses and view course materials.</p>
+      </div>
+      <div id="courses-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Sample courses -->
+       <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+        <div class="flex items-center justify-between mb-4">
+         <div class="text-2xl">
+          💻
+         </div><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Active</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Computer Science 301</h3>
+        <p class="text-gray-600 mb-3">Database Management Systems</p>
+        <p class="text-sm text-gray-500 mb-4">Prof. Johnson • MWF 10:00 AM</p><button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-all"> View Course </button>
+       </div>
+      </div>
+     </section><!-- Assignments Section -->
+     <section id="section-assignments" class="section-content hidden">
+      <div class="mb-6 flex items-center justify-between">
+       <div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Assignments</h2>
+        <p class="text-gray-600">Track and submit your assignments.</p>
+       </div><button id="add-assignment-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all"> + Add Assignment </button>
+      </div>
+      <div class="bg-white rounded-lg shadow-md">
+       <div class="p-6 border-b border-gray-200">
+        <div class="flex space-x-4"><button class="assignment-filter active px-4 py-2 bg-blue-600 text-white rounded-lg" data-filter="all">All</button> <button class="assignment-filter px-4 py-2 bg-gray-200 text-gray-700 rounded-lg" data-filter="pending">Pending</button> <button class="assignment-filter px-4 py-2 bg-gray-200 text-gray-700 rounded-lg" data-filter="submitted">Submitted</button> <button class="assignment-filter px-4 py-2 bg-gray-200 text-gray-700 rounded-lg" data-filter="overdue">Overdue</button>
+        </div>
+       </div>
+       <div id="assignments-list" class="p-6"><!-- Assignments will be populated here -->
+       </div>
+      </div>
+     </section><!-- Grades Section -->
+     <section id="section-grades" class="section-content hidden">
+      <div class="mb-6">
+       <h2 class="text-2xl font-bold text-gray-800 mb-2">Grades</h2>
+       <p class="text-gray-600">View your academic performance and grades.</p>
+      </div>
+      <div class="bg-white rounded-lg shadow-md p-6">
+       <div class="mb-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Grade Summary</h3>
+        <div class="grid md:grid-cols-3 gap-4">
+         <div class="text-center p-4 bg-green-50 rounded-lg">
+          <p class="text-2xl font-bold text-green-600">3.7</p>
+          <p class="text-sm text-gray-600">Current GPA</p>
+         </div>
+         <div class="text-center p-4 bg-blue-50 rounded-lg">
+          <p class="text-2xl font-bold text-blue-600">45</p>
+          <p class="text-sm text-gray-600">Credits Completed</p>
+         </div>
+         <div class="text-center p-4 bg-purple-50 rounded-lg">
+          <p class="text-2xl font-bold text-purple-600">75</p>
+          <p class="text-sm text-gray-600">Credits Remaining</p>
+         </div>
+        </div>
+       </div>
+       <div id="grades-list"><!-- Grades will be populated here -->
+       </div>
+      </div>
+     </section><!-- Profile Section -->
+     <section id="section-profile" class="section-content hidden">
+      <div class="mb-6">
+       <h2 class="text-2xl font-bold text-gray-800 mb-2">Profile</h2>
+       <p class="text-gray-600">Manage your personal information and settings.</p>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-6">
+       <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-md p-6">
+         <h3 class="text-lg font-bold text-gray-800 mb-4">Personal Information</h3>
+         <form id="profile-form" class="space-y-4">
+          <div class="grid md:grid-cols-2 gap-4">
+           <div><label class="block text-sm font-medium text-gray-700 mb-2">First Name</label> <input type="text" value="John" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+           </div>
+           <div><label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label> <input type="text" value="Doe" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+           </div>
+          </div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">Email</label> <input type="email" value="john.doe@university.edu" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">Phone</label> <input type="tel" value="+1 (555) 123-4567" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div><button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all"> Update Profile </button>
+         </form>
+        </div>
+       </div>
+       <div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+         <h3 class="text-lg font-bold text-gray-800 mb-4">Profile Picture</h3>
+         <div class="text-center">
+          <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
+           👤
+          </div><button class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all"> Change Photo </button>
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+    </main>
+   </div>
+  </div><!-- Assignment Modal -->
+  <div id="assignment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+   <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div class="p-6 border-b border-gray-200">
+     <h3 class="text-lg font-bold text-gray-800">Add New Assignment</h3>
+    </div>
+    <form id="assignment-form" class="p-6 space-y-4">
+     <div><label class="block text-sm font-medium text-gray-700 mb-2">Assignment Title</label> <input type="text" id="assignment-title" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+     </div>
+     <div><label class="block text-sm font-medium text-gray-700 mb-2">Course</label> <select id="assignment-course" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"> <option value="">Select Course</option> <option value="CS 301">CS 301 - Database Systems</option> <option value="MATH 201">MATH 201 - Calculus II</option> <option value="ENG 101">ENG 101 - English Composition</option> </select>
+     </div>
+     <div><label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label> <input type="date" id="assignment-due-date" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+     </div>
+     <div class="flex space-x-4 pt-4"><button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-all"> Add Assignment </button> <button type="button" id="cancel-assignment" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"> Cancel </button>
+     </div>
+    </form>
+   </div>
+  </div>
+  <script>
+        const defaultConfig = {
+            portal_title: "Student Portal",
+            university_name: "University of Excellence",
+            welcome_message: "Welcome back! Here's your academic overview.",
+            contact_email: "support@university.edu",
+            background_color: "#667eea",
+            surface_color: "#ffffff",
+            text_color: "#374151",
+            primary_action_color: "#2563eb",
+            secondary_action_color: "#6b7280"
+        };
+
+        let currentRecordCount = 0;
+        let studentData = [];
+        let currentUser = null;
+        let currentSection = 'dashboard';
+
+        // Data SDK Handler
+        const dataHandler = {
+            onDataChanged(data) {
+                currentRecordCount = data.length;
+                studentData = data;
+                updateDashboardStats();
+                renderAssignments();
+                renderGrades();
+            }
+        };
+
+        async function onConfigChange(config) {
+            // Update text content
+            document.getElementById('portal-title').textContent = config.portal_title || defaultConfig.portal_title;
+            document.getElementById('university-name').textContent = config.university_name || defaultConfig.university_name;
+            document.getElementById('dashboard-title').textContent = config.portal_title || defaultConfig.portal_title;
+            document.getElementById('dashboard-university').textContent = config.university_name || defaultConfig.university_name;
+            document.getElementById('welcome-message').textContent = config.welcome_message || defaultConfig.welcome_message;
+            document.getElementById('contact-email').textContent = config.contact_email || defaultConfig.contact_email;
+
+            // Update colors
+            const gradientElements = document.querySelectorAll('.gradient-bg');
+            gradientElements.forEach(element => {
+                element.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #764ba2 100%)`;
+            });
+
+            const surfaces = document.querySelectorAll('.bg-white');
+            surfaces.forEach(surface => {
+                surface.style.backgroundColor = config.surface_color || defaultConfig.surface_color;
+            });
+
+            const textElements = document.querySelectorAll('.text-gray-700, .text-gray-800');
+            textElements.forEach(element => {
+                element.style.color = config.text_color || defaultConfig.text_color;
+            });
+
+            const primaryButtons = document.querySelectorAll('.bg-blue-600');
+            primaryButtons.forEach(button => {
+                button.style.backgroundColor = config.primary_action_color || defaultConfig.primary_action_color;
+            });
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [
+                    {
+                        get: () => config.background_color || defaultConfig.background_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ background_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.surface_color || defaultConfig.surface_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ surface_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.text_color || defaultConfig.text_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ text_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.primary_action_color || defaultConfig.primary_action_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ primary_action_color: value });
+                            }
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["portal_title", config.portal_title || defaultConfig.portal_title],
+                ["university_name", config.university_name || defaultConfig.university_name],
+                ["welcome_message", config.welcome_message || defaultConfig.welcome_message],
+                ["contact_email", config.contact_email || defaultConfig.contact_email]
+            ]);
+        }
+
+        // Login validation
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function showError(elementId, show) {
+            const errorElement = document.getElementById(elementId);
+            if (show) {
+                errorElement.classList.remove('hidden');
+            } else {
+                errorElement.classList.add('hidden');
+            }
+        }
+
+        function simulateLogin(email, password) {
+            // Simulate login process
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // In a real system, this would validate against a database
+                    // For demo purposes, accept any valid email/password combination
+                    if (validateEmail(email) && validatePassword(password)) {
+                        resolve({
+                            success: true,
+                            user: {
+                                name: 'John Doe',
+                                email: email,
+                                studentId: 'STU2024001'
+                            }
+                        });
+                    } else {
+                        resolve({ success: false, message: 'Invalid credentials' });
+                    }
+                }, 1500);
+            });
+        }
+
+        function showDashboard(user) {
+            currentUser = user;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard-screen').classList.remove('dashboard-hidden');
+            
+            // Update user info
+            document.getElementById('student-name').textContent = `Welcome, ${user.name}`;
+            document.getElementById('student-id').textContent = `ID: ${user.studentId}`;
+            
+            // Load dashboard data
+            updateDashboardStats();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard-screen').classList.add('dashboard-hidden');
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('login-form').reset();
+        }
+
+        function switchSection(sectionName) {
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+
+            // Show/hide sections
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(`section-${sectionName}`).classList.remove('hidden');
+
+            currentSection = sectionName;
+        }
+
+        function updateDashboardStats() {
+            const assignments = studentData.filter(item => item.type === 'assignment');
+            const courses = studentData.filter(item => item.type === 'course');
+            const grades = studentData.filter(item => item.type === 'grade');
+            
+            document.getElementById('total-courses').textContent = Math.max(6, courses.length);
+            document.getElementById('pending-assignments').textContent = assignments.filter(a => a.status === 'pending').length || 3;
+            
+            // Calculate average grade
+            if (grades.length > 0) {
+                const gradePoints = grades.map(g => {
+                    switch(g.grade) {
+                        case 'A': return 4.0;
+                        case 'A-': return 3.7;
+                        case 'B+': return 3.3;
+                        case 'B': return 3.0;
+                        case 'B-': return 2.7;
+                        case 'C+': return 2.3;
+                        case 'C': return 2.0;
+                        default: return 2.0;
+                    }
+                });
+                const avg = gradePoints.reduce((a, b) => a + b, 0) / gradePoints.length;
+                document.getElementById('average-grade').textContent = avg >= 3.7 ? 'A-' : avg >= 3.0 ? 'B' : 'C+';
+            }
+        }
+
+        function renderAssignments(filter = 'all') {
+            const container = document.getElementById('assignments-list');
+            const assignments = studentData.filter(item => item.type === 'assignment');
+            
+            let filteredAssignments = assignments;
+            if (filter !== 'all') {
+                filteredAssignments = assignments.filter(a => a.status === filter);
+            }
+            
+            if (filteredAssignments.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-lg">No assignments found</p>
+                        <p class="text-sm">Add your first assignment to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredAssignments.map(assignment => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-semibold text-gray-800">${assignment.assignment}</h4>
+                            <p class="text-blue-600 font-medium">${assignment.courseCode} - ${assignment.courseName}</p>
+                            <p class="text-sm text-gray-600">Due: ${new Date(assignment.dueDate).toLocaleDateString()}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium status-${assignment.status}">
+                            ${assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderGrades() {
+            const container = document.getElementById('grades-list');
+            const grades = studentData.filter(item => item.type === 'grade');
+            
+            if (grades.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <p class="text-lg">No grades available</p>
+                        <p class="text-sm">Grades will appear here once assignments are graded</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Course</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Assignment</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Grade</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Instructor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${grades.map(grade => `
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-3 px-4">
+                                        <div>
+                                            <p class="font-medium text-gray-800">${grade.courseCode}</p>
+                                            <p class="text-sm text-gray-600">${grade.courseName}</p>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-700">${grade.assignment}</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 rounded-full text-sm font-medium grade-${grade.grade.toLowerCase().replace(/[+-]/, '')}">
+                                            ${grade.grade}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-700">${grade.instructor}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function showMessage(text, type) {
+            const message = document.createElement('div');
+            message.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            message.textContent = text;
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 4000);
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Login form submission
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const loginBtn = document.getElementById('login-btn');
+                const loginText = document.getElementById('login-text');
+                const loginSpinner = document.getElementById('login-spinner');
+                
+                // Validate inputs
+                let isValid = true;
+                
+                if (!validateEmail(email)) {
+                    showError('email-error', true);
+                    isValid = false;
+                } else {
+                    showError('email-error', false);
+                }
+                
+                if (!validatePassword(password)) {
+                    showError('password-error', true);
+                    isValid = false;
+                } else {
+                    showError('password-error', false);
+                }
+                
+                if (!isValid) return;
+                
+                // Show loading state
+                loginBtn.disabled = true;
+                loginText.textContent = 'Signing In...';
+                loginSpinner.classList.remove('hidden');
+                
+                try {
+                    const result = await simulateLogin(email, password);
+                    
+                    if (result.success) {
+                        showMessage('Login successful! Welcome to the portal.', 'success');
+                        showDashboard(result.user);
+                    } else {
+                        showMessage(result.message || 'Login failed. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    showMessage('An error occurred. Please try again.', 'error');
+                } finally {
+                    loginBtn.disabled = false;
+                    loginText.textContent = 'Sign In';
+                    loginSpinner.classList.add('hidden');
+                }
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', logout);
+
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const section = this.getAttribute('data-section');
+                    switchSection(section);
+                });
+            });
+
+            // Assignment filters
+            document.querySelectorAll('.assignment-filter').forEach(filter => {
+                filter.addEventListener('click', function() {
+                    document.querySelectorAll('.assignment-filter').forEach(f => {
+                        f.classList.remove('active', 'bg-blue-600', 'text-white');
+                        f.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    this.classList.add('active', 'bg-blue-600', 'text-white');
+                    this.classList.remove('bg-gray-200', 'text-gray-700');
+                    
+                    const filterValue = this.getAttribute('data-filter');
+                    renderAssignments(filterValue);
+                });
+            });
+
+            // Add assignment modal
+            document.getElementById('add-assignment-btn').addEventListener('click', function() {
+                document.getElementById('assignment-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('cancel-assignment').addEventListener('click', function() {
+                document.getElementById('assignment-modal').classList.add('hidden');
+            });
+
+            // Assignment form submission
+            document.getElementById('assignment-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (currentRecordCount >= 999) {
+                    showMessage('Maximum limit of 999 records reached. Please contact administrator.', 'error');
+                    return;
+                }
+
+                const formData = new FormData(e.target);
+                
+                const assignmentData = {
+                    id: Date.now().toString(),
+                    type: 'assignment',
+                    studentId: currentUser?.studentId || 'STU2024001',
+                    courseName: formData.get('course').split(' - ')[1] || 'Course Name',
+                    courseCode: formData.get('course').split(' - ')[0] || 'COURSE',
+                    instructor: 'Prof. Smith',
+                    assignment: formData.get('title'),
+                    dueDate: formData.get('due-date'),
+                    status: 'pending',
+                    submittedAt: new Date().toISOString()
+                };
+
+                try {
+                    const result = await window.dataSdk.create(assignmentData);
+                    
+                    if (result.isOk) {
+                        showMessage('Assignment added successfully!', 'success');
+                        document.getElementById('assignment-modal').classList.add('hidden');
+                        document.getElementById('assignment-form').reset();
+                    } else {
+                        showMessage('Failed to add assignment. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    showMessage('An error occurred. Please try again.', 'error');
+                }
+            });
+
+            // Profile form submission
+            document.getElementById('profile-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                showMessage('Profile updated successfully!', 'success');
+            });
+
+            // Set minimum date for assignment due date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('assignment-due-date').min = today;
+        });
+
+        // Initialize SDKs
+        async function initializeApp() {
+            // Initialize Element SDK
+            if (window.elementSdk) {
+                window.elementSdk.init({
+                    defaultConfig,
+                    onConfigChange,
+                    mapToCapabilities,
+                    mapToEditPanelValues
+                });
+            }
+
+            // Initialize Data SDK
+            if (window.dataSdk) {
+                const initResult = await window.dataSdk.init(dataHandler);
+                if (!initResult.isOk) {
+                    console.error("Failed to initialize data SDK");
+                }
+            }
+        }
+
+        // Initialize when page loads
+        initializeApp();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9961604562e99aa2',t:'MTc2MTcyNzMxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
